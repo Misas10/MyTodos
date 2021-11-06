@@ -1,102 +1,66 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:mytodos/services/firebase/auth.dart';
 import 'package:provider/provider.dart';
-import 'services/appWrite/app_write.dart';
+
 import 'models/todos_models.dart';
-import 'screens/todos_screen.dart';
 import 'screens/settings_screen.dart';
-import 'widgets.dart';
+import 'screens/home_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class App extends StatefulWidget {
+  const App({Key? key}) : super(key: key);
 
   @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => Todo(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'MyTodos',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Todo>(
+          create: (context) => Todo(),
         ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const MyHomePage(
-                title: 'MyTodos App',
+        Provider<Auth>(
+          create: (contect) => Auth(),
+        )
+      ],
+      child: FutureBuilder(
+        future: _initialization,
+        builder: (context, snapshot) {
+          // Check for errors
+          if (snapshot.hasError) {
+            debugPrint("An Error ocour");
+          }
+
+          // Once complete, show application
+          if (snapshot.connectionState == ConnectionState.done) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'MyTodos',
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
               ),
-          '/settings': (context) => const SettingsScreen()
+              initialRoute: '/',
+              routes: {
+                '/': (context) => const HomePage(
+                      title: 'MyTodos App',
+                    ),
+                '/settings': (context) => const SettingsScreen()
+              },
+            );
+          }
+          // Otherwise, show something while wainting
+          // TODO: implement a wainting screen/widget
+          return Container();
         },
-      ),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final addTodoTextFieldController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: customAppBar(
-        widget.title,
-        actions: <Widget>[
-          IconButton(
-            splashRadius: 25,
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-          )
-        ],
-      ),
-      body: const TodosScreen(),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add_task),
-        onPressed: () async => AppWrite.instance.createAccount,
-      ),
-    );
-  }
-
-  Future<void> _addNewTodo() async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Add new Todo"),
-        content: TextField(
-          controller: addTodoTextFieldController,
-          decoration: const InputDecoration(),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text(
-              "Add",
-              textAlign: TextAlign.end,
-              style: TextStyle(color: Colors.white),
-            ),
-            style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-            ),
-            onPressed: () {
-              if (addTodoTextFieldController.text.trim().isNotEmpty) {
-                Provider.of<Todo>(context, listen: false)
-                    .addTodo(addTodoTextFieldController.text.trim());
-              }
-              Navigator.pop(context);
-              addTodoTextFieldController.clear();
-            },
-          )
-        ],
       ),
     );
   }
