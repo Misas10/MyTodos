@@ -39,6 +39,9 @@ dependencies:
   appwrite: ^2.0.3
   firebase: ^9.0.2
   firebase_auth: ^3.1.4
+  firebase_core: ^1.8.0
+  rflutter_alert: ^2.0.4
+
 
 dev_dependencies:
   flutter_test:

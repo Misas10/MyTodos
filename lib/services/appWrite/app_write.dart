@@ -17,7 +17,7 @@ class AppWrite {
   static AppWrite get instance => _instance;
 
   Future<User> createAccount() async {
-    debugPrint("creating accout");
+    print("creating accout");
     return account!
         .create(email: 'me@appWrite.io', password: 'teste123', name: 'My name');
   }
