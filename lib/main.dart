@@ -58,8 +58,7 @@ class _AppState extends State<App> {
             );
           }
           // Otherwise, show something while wainting
-          // TODO: implement a wainting screen/widget
-          return Container();
+          return const Center( child: CircularProgressIndicator());
         },
       ),
     );
